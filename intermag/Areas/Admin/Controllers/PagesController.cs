@@ -240,5 +240,56 @@ namespace intermag.Areas.Admin.Controllers
 
                 return View(model);
         }
+
+        //Метод удаления страниц
+        //Get: Admin/Pages/DeletePage/id
+        public ActionResult DeletePage(int id)
+        {
+            using (Db db = new Db())
+            {
+                //Получение страницы
+                PagesDTO dto = db.Pages.Find(id);
+
+                //Удаление страницы
+                db.Pages.Remove(dto);
+
+                //Сохранение изменений в базе
+                db.SaveChanges();
+            }
+
+            //Сообщение пользователю об успешном удалении
+
+            TempData["SM"] = "Страница удалена епта";
+            //Переадресация пользоателя на страницу Index
+
+            return RedirectToAction("Index");
+        }
+
+
+        //Создаем метод сортировки
+        [HttpPost]
+        public void ReorderPages(int [] id)
+        {
+            using (Db db = new Db())
+            {
+                // Реализуем начальный счетчик
+                int count = 1;
+
+                // Инициализируем модель данных
+                PagesDTO dto;
+
+                //Устанавливаем сортировку для каждой страницы
+                foreach(var pageId in id)
+                {
+                    dto = db.Pages.Find(pageId);
+                    dto.Sorting = count;
+
+                    db.SaveChanges();
+
+                    count++;
+                }
+
+            }
+        }
     }
 }

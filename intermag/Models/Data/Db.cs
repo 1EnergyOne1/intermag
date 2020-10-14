@@ -1,4 +1,5 @@
-﻿using System;
+﻿using intermag.Models.Data;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -11,5 +12,7 @@ namespace intermag.Areas.Admin.Data
         public DbSet<PagesDTO> Pages { get; set; }
 
         public System.Data.Entity.DbSet<intermag.Models.ViewModels.Pages.PageVM> PageVMs { get; set; }
+
+        public DbSet<SidebarDTO> Sidebars { get; set; }
     }
 }
