@@ -1,8 +1,10 @@
 ﻿using intermag.Areas.Admin.Data;
+using intermag.Models.Data;
 //using intermag.Models.Data;
 using intermag.Models.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -290,6 +292,50 @@ namespace intermag.Areas.Admin.Controllers
                 }
 
             }
+        }
+
+        //Get: Admin/Pages/EditSidebar
+
+       public ActionResult EditSidebar(SidebarDTO row)
+        {
+            //Объявляем модель
+            SidebarVM model;
+
+            using (Db db = new Db())
+            {
+                //Получаем данные из DTO
+                SidebarDTO dto = db.Sidebars.Find(1);
+
+                //заполняем модель данными
+                model = new SidebarVM(dto);
+            }
+
+                return View(model);
+        }
+
+        //Post: Admin/Pages/EditSidebar
+        [HttpPost]
+
+        public ActionResult EditSidebar(SidebarVM model)
+        {
+            using (Db db = new Db())
+            {
+
+
+                //Получаем данные из DTO
+                SidebarDTO dto = db.Sidebars.Find(1);
+
+                //Присваиваем данные в тело (в свойство Body
+                dto.Body = model.Body;
+
+                //Сохранение
+                db.SaveChanges();
+            }
+            //Сообщение об удачном редактировании
+            TempData["SM"] = "Удачно отредактировано епта";
+
+                //Переадресация полльзователя на даннную страницу
+                return RedirectToAction("EditSidebar");
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace intermag.Models.ViewModels.Pages
 {
@@ -29,6 +30,7 @@ namespace intermag.Models.ViewModels.Pages
         public string Slug { get; set; }
         [Required] //поле обязательное для заполнения
         [StringLength(50, MinimumLength = 3)] //ограничения на максимальное и минимальное длину строки
+        [AllowHtml]
         public string Body { get; set; }
         public int Sorting { get; set; }
         [Display(Name = "Sidebar")]

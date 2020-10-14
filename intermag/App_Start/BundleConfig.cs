@@ -30,6 +30,10 @@ namespace intermag
                       "~/Content/bootstrap.css",
                       "~/Content/site.css",
                       "~/Content/jquery-ui.css"));
+
+            //Подключаем новую библиотеку CKEditor 
+            bundles.Add(new ScriptBundle("~/bundles/ckeditor").Include(
+                     "~/Scripts/ckeditor/ckeditor.js"));
         }
     }
 }

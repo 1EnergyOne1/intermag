@@ -39,10 +39,10 @@
                 {
                     @Html.EditorFor(model => model.Slug, new { htmmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
                 }
+
                 
-                {
-                    @Html.EditorFor(model => model.Slug, new { htmmlAttributes = new { @class = "form-control" } })
-                }
+                @Html.EditorFor(model => model.Slug, new { htmmlAttributes = new { @class = "form-control" } })
+                
 
 
                 @Html.ValidationMessageFor(model => model.Slug, "", new { @class = "text-danger" })
@@ -78,3 +78,11 @@
 <div>
     @Html.ActionLink("Back to Pages", "Index")
 </div>
+
+<!--Скрипт подмены для CKEditor-->
+@section Scripts
+{
+    <script>
+        CKEDITOR.replace("Body");
+    </script>
+}
