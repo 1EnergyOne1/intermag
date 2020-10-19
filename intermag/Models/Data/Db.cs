@@ -14,5 +14,8 @@ namespace intermag.Areas.Admin.Data
         public System.Data.Entity.DbSet<intermag.Models.ViewModels.Pages.PageVM> PageVMs { get; set; }
 
         public DbSet<SidebarDTO> Sidebars { get; set; }
+
+        //подключение таблицы Categories
+        public DbSet<CategoryDTO> Categories { get; set; }
     }
 }
