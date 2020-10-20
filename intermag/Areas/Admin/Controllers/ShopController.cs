@@ -62,5 +62,86 @@ namespace intermag.Areas.Admin.Controllers
             return id;
 
         }
+
+        //Создаем метод сортировки
+        
+        //GET: Admin/Shop/ReorderCategories
+        [HttpPost]
+        public void ReorderCategories(int[] id)
+        {
+            using (Db db = new Db())
+            {
+                // Реализуем начальный счетчик
+                int count = 1;
+
+                // Инициализируем модель данных
+                CategoryDTO dto;
+
+                //Устанавливаем сортировку для каждой страницы
+                foreach (var catId in id)
+                {
+                    dto = db.Categories.Find(catId);
+                    dto.Sorting = count;
+
+                    db.SaveChanges();
+
+                    count++;
+                }
+
+            }
+        }
+
+        //Метод удаления категории страницы
+        //Get: Admin/Pages/DeleteCategory/id
+        public ActionResult DeleteCategory(int id)
+        {
+            using (Db db = new Db())
+            {
+                //Получение категории страницы
+                CategoryDTO dto = db.Categories.Find(id);
+
+                //Удаление страницы
+                db.Categories.Remove(dto);
+
+                //Сохранение изменений в базе
+                db.SaveChanges();
+            }
+
+            //Сообщение пользователю об успешном удалении
+
+            TempData["SM"] = "Категория удалена епта";
+            //Переадресация пользоателя на страницу Index
+
+            return RedirectToAction("Categories");
+        }
+
+
+        //POST: Admin/Pages/RenameCategory/id
+        [HttpPost]
+        public string RenameCategory(string newCatName, int id)
+        {
+            using (Db db = new Db())
+            {
+                //Проверка имени на уникальность
+                if (db.Categories.Any(x => x.Name == newCatName))
+                    return "titletaken";
+
+                //Получаем данные из бд (модель DTO)
+                CategoryDTO dto = db.Categories.Find(id);
+
+
+                //Редактируем модель  DTO
+                dto.Name = newCatName;
+                dto.Slug = newCatName.Replace(" ", "-").ToLower();
+
+                // Сохраняем изменения
+                db.SaveChanges();
+
+            }
+            // Возвращаем слово
+
+            return "Ок, Бро!";
+            
+        }
     }
 }

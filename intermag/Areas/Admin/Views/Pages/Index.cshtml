@@ -14,7 +14,7 @@
 }
 
 <a>
-    @Html.ActionLink("Create New Page", "AddPage", "", new { @class = "btn btn-success"})
+    @Html.ActionLink("Create New Page", "AddPage", "", new { @class = "btn btn-success" })
 </a>
 
 @if (!Model.Any())
@@ -23,7 +23,7 @@
 }
 else
 {
-    
+
     <table class="table sorting" id="pages">
         <tr class="home">
             <th>
@@ -32,8 +32,8 @@ else
             <th>
                 Slug
             </th>
-        
-            
+
+
             <th>
                 Sidebar
             </th>
@@ -46,20 +46,20 @@ else
                 <td>
                     @if (item.Slug != "home")
                     {
-                        <span class="ui-icon ui-icon-arrow-2-n-s" ></span>
+                        <span class="ui-icon ui-icon-arrow-2-n-s"></span>
                     }
                     @Html.DisplayFor(modelItem => item.Title)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Slug)
                 </td>
-        
+
                 <td>
                     @Html.DisplayFor(modelItem => item.HasSidebar)
                 </td>
                 <td>
                     @Html.ActionLink("Edit", "EditPage", new { id = item.Id }) |
-                    @Html.ActionLink("Details", "PageDetails", new { id = item.Id }) 
+                    @Html.ActionLink("Details", "PageDetails", new { id = item.Id })
                     <!-- Если Slug равен home, то не показывать кнопку Delete-->
                     @if (item.Slug != "home")
                     {
@@ -68,7 +68,7 @@ else
                         @slash;
                         @Html.ActionLink("Delete", "DeletePage", new { id = item.Id }, new { @class = "delete" })
                     }
-                    
+
                 </td>
             </tr>
         }
@@ -78,32 +78,5 @@ else
 
 @section Scripts
     {
-        <script>
-            $(function ()
-            {
-                //Подтверждение удаления страницы
-                $("a.delete").click(function ()
-                {
-                    if (!confirm("Удалить страницу?")) return false;
-                });
-
-                //-------------------------------------------------------------------------------
-
-                // Sorting script
-
-                $("table#pages tbody").sortable(
-                    {
-                        items: "tr:not(.home)",
-                        placeholder: "ui-state-hilight",
-                        update: function ()
-                        {
-                            var ids = $("table#pages tbody").sortable("serialize");
-                            var url = "/Admin/Pages/ReorderPages";
-
-                            $.post(url, ids, function (data) {
-                            });
-                        }
-                    });
-            });
-        </script>
+        <script src="~/Content/ShopJS/PagesIndexViewJS.js"></script>
     }
