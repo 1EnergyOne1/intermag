@@ -92,7 +92,7 @@ namespace intermag.Areas.Admin.Controllers
         }
 
         //Метод удаления категории страницы
-        //Get: Admin/Pages/DeleteCategory/id
+        //Get: Admin/Shop/DeleteCategory/id
         public ActionResult DeleteCategory(int id)
         {
             using (Db db = new Db())
@@ -116,7 +116,7 @@ namespace intermag.Areas.Admin.Controllers
         }
 
 
-        //POST: Admin/Pages/RenameCategory/id
+        //POST: Admin/Shop/RenameCategory/id
         [HttpPost]
         public string RenameCategory(string newCatName, int id)
         {
@@ -142,6 +142,26 @@ namespace intermag.Areas.Admin.Controllers
 
             return "Ок, Бро!";
             
+        }
+
+        //Создаем метод добавления товаров
+        //Get: Admin/Shop/AddProduct
+
+        public ActionResult AddProduct ()
+        {
+            // Объявляем модель данных
+            ProductVM model = new ProductVM();
+
+            // Добавляем список категорий из базы в модель
+            using (Db db = new Db())
+            {
+                model.Categories = new SelectList(db.Categories.ToList(), "id", "Name");
+            }
+
+
+                // Возвращаем модель в представление
+
+                return View(model);
         }
     }
 }

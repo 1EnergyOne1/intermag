@@ -17,5 +17,7 @@ namespace intermag.Areas.Admin.Data
 
         //подключение таблицы Categories
         public DbSet<CategoryDTO> Categories { get; set; }
+
+        public DbSet<ProductDTO> Products { get; set; }
     }
 }
