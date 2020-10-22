@@ -1,6 +1,7 @@
 ﻿using intermag.Areas.Admin.Data;
 using intermag.Models.Data;
 using intermag.Models.ViewModels.Shop;
+using PagedList;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,14 +21,14 @@ namespace intermag.Areas.Admin.Controllers
             //Объявляем модель типа List
             List<CategoryVM> categoryVMList;
 
-            
+
             using (Db db = new Db())
             {
                 //Инициализируем модель данными
                 categoryVMList = db.Categories.ToArray().OrderBy(x => x.Sorting).Select(x => new CategoryVM(x)).ToList();
-                
+
             }
-                //Возвращаем List в представление
+            //Возвращаем List в представление
             return View(categoryVMList);
         }
 
@@ -38,7 +39,7 @@ namespace intermag.Areas.Admin.Controllers
             //Объявляем строковую переменную типа Id
             string id;
 
-            
+
             using (Db db = new Db())
             {
                 //Проверка категории на уникальность
@@ -67,7 +68,7 @@ namespace intermag.Areas.Admin.Controllers
         }
 
         //Создаем метод сортировки
-        
+
         //GET: Admin/Shop/ReorderCategories
         [HttpPost]
         public void ReorderCategories(int[] id)
@@ -144,13 +145,13 @@ namespace intermag.Areas.Admin.Controllers
             // Возвращаем слово
 
             return "Ок, Бро!";
-            
+
         }
 
         //Создаем метод добавления товаров
         //Get: Admin/Shop/AddProduct
         [HttpGet]
-        public ActionResult AddProduct ()
+        public ActionResult AddProduct()
         {
             // Объявляем модель данных
             ProductVM model = new ProductVM();
@@ -162,16 +163,16 @@ namespace intermag.Areas.Admin.Controllers
             }
 
 
-                // Возвращаем модель в представление
+            // Возвращаем модель в представление
 
-                return View(model);
+            return View(model);
         }
 
         //Создаем метод добавления товаров
         //Post: Admin/Shop/AddProduct
 
         [HttpPost]
-        public ActionResult AddProduct (ProductVM model, HttpPostedFileBase file)
+        public ActionResult AddProduct(ProductVM model, HttpPostedFileBase file)
         {
             // проверка модели на валидность
             if (!ModelState.IsValid)
@@ -249,7 +250,7 @@ namespace intermag.Areas.Admin.Controllers
                 Directory.CreateDirectory(pathString5);
 
             // Проверяем загружен ли такой файл
-            if (file != null && file.ContentLength >0)
+            if (file != null && file.ContentLength > 0)
             {
                 //Получаем расширение файла
                 string ext = file.ContentType.ToLower();
@@ -270,7 +271,7 @@ namespace intermag.Areas.Admin.Controllers
                     }
                 }
 
-            
+
 
                 // Объявляем переменную с именем изображения
                 string imageName = file.FileName;
@@ -303,5 +304,39 @@ namespace intermag.Areas.Admin.Controllers
 
             return RedirectToAction("AddProduct");
         }
-    }
+
+        //Создаем метод списка товаров
+        //Get: Admin/Shop/AddProduct
+        [HttpGet]
+        public ActionResult Products (int? page, int? catId)
+        {
+            // Объявляем модель ProductVM типа List
+            List<ProductVM> listOfProductVM;
+
+            // Устанавливаем номер страницы
+            var pageNumber = page ?? 1;
+
+            using (Db db = new Db())
+            {
+                // Инициализируем list и заполняем данными
+                listOfProductVM = db.Products.ToArray()
+                                  .Where(x => catId == null || catId == 0 || x.CategoryId == catId)
+                                  .Select(x => new ProductVM(x)).ToList();
+
+                // Заполняем категории данными
+                ViewBag.Categories = new SelectList(db.Categories.ToList(), "Id", "Name");
+
+                // Устанавливаем выбранную категорию
+                ViewBag.SelectedCat = catId.ToString();
+            
+            }
+
+            //Устанавливаем постраничную навигацию
+            var onePageOfProducts = listOfProductVM.ToPagedList(pageNumber, 3);
+            ViewBag.onePageOfProducts = onePageOfProducts;
+
+            // Возвращаем представление с данными
+            return View(listOfProductVM);
+        }
+    } 
 }
