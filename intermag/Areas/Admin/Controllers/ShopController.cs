@@ -338,5 +338,249 @@ namespace intermag.Areas.Admin.Controllers
             // Возвращаем представление с данными
             return View(listOfProductVM);
         }
-    } 
+
+
+        //Создаем метод редактирования товаров
+        //Get: Admin/Shop/EditProduct/id
+        [HttpGet]
+        public ActionResult EditProduct (int id )
+        {
+            //Объявляем модель ProductVM
+            ProductVM model;
+
+            
+            using (Db db = new Db())
+            {
+                //Получаем продукт 
+                ProductDTO dto = db.Products.Find(id);
+
+                // Проверка доступен ли продукт
+                if (dto == null)
+                {
+                    return Content("Нету такого");
+                }
+
+                // инициализируем модель данных
+                model = new ProductVM(dto);
+
+                //создаем список категорий
+                model.Categories = new SelectList(db.Categories.ToList(), "Id", "Name");
+
+                // получаем все изображения из галереи
+                model.GalleryImages = Directory.EnumerateFiles(Server.MapPath("~/Images/Uploads/Products/" + id + "/Gallery/Thumbs"))
+                                                .Select(fn => Path.GetFileName(fn));
+            }
+
+            // вернуть модель и представление
+            return View(model);
+        }
+
+
+        //Создаем метод редактирования товаров
+        //Post: Admin/Shop/EditProduct
+
+        [HttpPost]
+        public ActionResult EditProduct(ProductVM model, HttpPostedFileBase file)
+        {
+            // Получаем id продукта
+            int id = model.Id;
+
+            // Заполняем выпадающий список категориями и изображениями
+            using (Db db = new Db())
+            {
+                model.Categories = new SelectList(db.Categories.ToList(), "Id", "Name");
+            }
+
+            model.GalleryImages = Directory.EnumerateFiles(Server.MapPath("~/Images/Uploads/Products/" + id + "/Gallery/Thumbs"))
+                                                .Select(fn => Path.GetFileName(fn));
+
+            // Проверяем модель на валидность
+            if(!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Проверка продукта на уникальность
+            using (Db db = new Db())
+            {
+                if(db.Products.Where(x => x.Id != id).Any(x => x.Name == model.Name))
+                {
+                    ModelState.AddModelError("", "Есть уже такое, урод!");
+                    return View(model);
+                }
+            }
+
+            // Обновляем продукт в бд
+            using (Db db = new Db())
+            {
+                ProductDTO dto = db.Products.Find(id);
+
+                dto.Name = model.Name;
+                dto.Slug = model.Name.Replace(" ", "-").ToLower();
+                dto.Description = model.Description;
+                dto.Price = model.Price;
+                dto.CategoryId = model.CategoryId;
+                dto.ImageName = model.ImageName;
+
+                CategoryDTO catDTO = db.Categories.FirstOrDefault(x => x.Id == model.CategoryId);
+                dto.CategoryName = catDTO.Name;
+
+                db.SaveChanges();
+            }
+
+            // выводим сообщение в TempData
+            
+            TempData["SM"] = "Вы успешно всё епта нахрен поменяли";
+
+            // реализовываем логику обработки изображений (потом)
+            #region Image Upload
+
+            // Проверка загружен ли файл
+            if (file != null && file.ContentLength > 0)
+            {
+
+                // Получаем расширение файла
+                string ext = file.ContentType.ToLower();
+
+                // Проверить расширение файла
+                if (ext != "image/jpg" &&
+                   ext != "image/jpeg" &&
+                   ext != "image/pjpeg" &&
+                   ext != "image/gif" &&
+                   ext != "image/x-png" &&
+                   ext != "image/png")
+                {
+                    using (Db db = new Db())
+                    {
+                        ModelState.AddModelError("", "Изображение нихрена не загружено. Формат блин не тот");
+                        return View(model);
+                    }
+                }
+
+                // Установка путей загрузки
+                var originalDirectory = new DirectoryInfo(string.Format($"{Server.MapPath(@"\")}Images\\Uploads"));
+
+                var pathString1 = Path.Combine(originalDirectory.ToString(), "Products\\" + id.ToString());
+                var pathString2 = Path.Combine(originalDirectory.ToString(), "Products\\" + id.ToString() + "\\Thumbs");
+
+                // Если файлы существуют, то надо удаляем их в директориях и удаляем сами директории
+                DirectoryInfo di1 = new DirectoryInfo(pathString1);
+                DirectoryInfo di2 = new DirectoryInfo(pathString2);
+
+                foreach (var file2 in di1.GetFiles())
+                {
+                    file2.Delete();
+                }
+                
+                foreach (var file3 in di2.GetFiles())
+                {
+                    file3.Delete();
+                }
+
+                // Сохраняем новое имя изображения
+                string imageName = file.FileName;
+
+                using (Db db = new Db())
+                {
+                    ProductDTO dto = db.Products.Find(id);
+                    dto.ImageName = imageName;
+
+                    db.SaveChanges();
+                }
+
+                // Сохраняем оригинал изображения и его превью
+                // Назначаем пути к оригинальному и уменьшеному изображению
+                var path = string.Format($"{pathString1}\\{imageName}");
+                var path2 = string.Format($"{pathString2}\\{imageName}");
+
+                // Сохраняем оригинальное изображение
+                file.SaveAs(path);
+
+                // Создаем и сохраняем уменьшеную копию
+                WebImage img = new WebImage(file.InputStream);
+                img.Resize(200, 200).Crop(1,1);
+                img.Save(path2);
+
+            }
+            #endregion
+
+            //Переадресайия пользователя
+            return RedirectToAction("EditProduct");
+        }
+
+        //Создаем метод Удаления товара
+        //Post: Admin/Shop/DeleteProduct/id
+        public ActionResult DeleteProduct (int id)
+        {
+            // Удаляем товар из базы данных
+            using (Db db = new Db())
+            {
+                ProductDTO dto = db.Products.Find(id);
+                db.Products.Remove(dto);
+                db.SaveChanges();
+            }
+
+            // Удаляем директории товара (изображения)
+            var originalDirectory = new DirectoryInfo(string.Format($"{Server.MapPath(@"\")}Images\\Uploads"));
+            var pathString = Path.Combine(originalDirectory.ToString(), "Products\\" + id.ToString());
+
+            if (Directory.Exists(pathString))
+                Directory.Delete(pathString, true);
+
+            // Переадресовываем пользователя
+
+            return RedirectToAction("Products");
+        }
+
+        //Создаем метод добавления изображения в галерею
+        //Post: Admin/Shop/SaveGalleryImages/id
+        [HttpPost]
+        public void SaveGalleryImages(int id)
+        {
+            // Перебираем все полученные файлы
+            foreach (string fileName  in Request.Files)
+            {
+                // Инициализируем файлы
+                HttpPostedFileBase file = Request.Files[fileName];
+
+                // Проверка на отсутствие файлов
+                if (file != null && file.ContentLength >0)
+                {
+                    // Назначаем все пути к директориям
+                    var originalDirectory = new DirectoryInfo(string.Format($"{Server.MapPath(@"\")}Images\\Uploads"));
+
+                    string pathString1 = Path.Combine(originalDirectory.ToString(), "Products\\" + id.ToString() + "\\Gallery");
+                    string pathString2 = Path.Combine(originalDirectory.ToString(), "Products\\" + id.ToString() + "\\Gallery\\Thumbs");
+
+                    // Назначаем пути изображений
+                    var path = string.Format($"{pathString1}\\{file.FileName}");
+                    var path2 = string.Format($"{pathString2}\\{file.FileName}");
+
+                    // Сохраняем оригинальные изображения и уменьшеные копии
+                    file.SaveAs(path);
+
+                    WebImage img = new WebImage(file.InputStream);
+                    img.Resize(200, 200).Crop(1,1);
+                    img.Save(path2);
+                }
+            }
+        }
+        //Создаем метод удаления изображения из галереи
+        //Post: Admin/Shop/DeleteGalleryImages/id/imageName
+        [HttpPost]
+        public void DeleteImage(int id, string imageName)
+        {
+            // Прописываем пути
+            string fullPath1 = Request.MapPath("~/Images/Uploads/Products/" + id.ToString() + "/Gallery/" + imageName);
+            string fullPath2 = Request.MapPath("~/Images/Uploads/Products/" + id.ToString() + "/Gallery/Thumbs/" + imageName);
+
+            // Если есть, то удаляем оригинальные изображения и уменьшеные копии
+            if (System.IO.File.Exists(fullPath1))
+                System.IO.File.Delete(fullPath1);
+
+            if (System.IO.File.Exists(fullPath2))
+                System.IO.File.Delete(fullPath2);
+                        
+        }
+    }
 }
